@@ -12,8 +12,8 @@
 	<artifactId>com.project.cafe</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
-	<name>com.project.cafe</name>
-	<description>Cafe Management System</description>
+	<name>Cafe Management System</name>
+	<description>Cafe Management System Test Project</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
@@ -31,6 +31,12 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
 		<dependency>
 			<groupId>com.mysql</groupId>
 			<artifactId>mysql-connector-j</artifactId>
