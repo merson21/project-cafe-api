@@ -14,7 +14,13 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 import lombok.Data;
 
-@NamedQuery(name = "user.findByEmailId", query = "select u from user u where u.email =: email")
+//@NamedQuery(name = "user.findByEmailId", query = "select u from user u where u.email =: email")
+
+//@NamedQuery(name = "user.getAllUser", query = "select new com.project.cafe.wrapper.UserWrapper(u.id,u.name,u.email,u.contactNumber,u.status) from user u where u.role='user'")
+
+//@NamedQuery(name = "user.updateStatus", query = "update user u set u.status=:status where u.id=:id")
+
+
 
 @Data
 @Entity
