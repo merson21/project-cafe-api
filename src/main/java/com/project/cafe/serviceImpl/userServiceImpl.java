@@ -26,6 +26,8 @@ import com.project.cafe.utils.EmailUtils;
 import com.project.cafe.utils.cafeUtils;
 import com.project.cafe.wrapper.UserWrapper;
 
+import ch.qos.logback.classic.Logger;
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -192,4 +194,20 @@ public class userServiceImpl implements userService {
 	}
 
 
+	@Override
+	public ResponseEntity<String> forgotPassword(Map<String, String> requestMap) {
+		try {
+			user user = userDao.findByEmailId(requestMap.get("email"));
+			if(!Objects.isNull(user) && !Strings.isNullOrEmpty(user.getEmail())) {
+				emailUtils.forgotMail(user.getEmail(), "Credentials by Cafe Management System", user.getPassword());
+				log.info("Email Sent");
+			}
+			return cafeUtils.getResponseEntity("Please Check Your Email", HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return cafeUtils.getResponseEntity(cafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+		
+	}
+	
 }
