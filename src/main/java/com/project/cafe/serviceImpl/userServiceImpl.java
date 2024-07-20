@@ -14,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.google.common.base.Strings;
 import com.project.cafe.JWT.JwtFilter;
 import com.project.cafe.JWT.JwtUtil;
 import com.project.cafe.JWT.customUserDetailsService;
@@ -159,6 +160,34 @@ public class userServiceImpl implements userService {
 		} else {
 			emailUtils.sendSimpleMessage(jwtFilter.getCurrentUser(), "Account Disabled", "USER: - "+ user +" \n is disabled by \nADMIN:- " + jwtFilter.getCurrentUser() , allAdmin);
 		}
+		
+	}
+
+
+	@Override
+	public ResponseEntity<String> checkToken() {
+		return cafeUtils.getResponseEntity("true", HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<String> changePassword(Map<String, String> requestMap) {
+		try {
+			user userObj = userDao.findByEmailId(jwtFilter.getCurrentUser());
+			if(!userObj.equals(null)) {
+				if(userObj.getPassword().equals(requestMap.get("oldPassword"))) {
+					userObj.setPassword(requestMap.get("newPassword"));
+					userDao.save(userObj);
+					return cafeUtils.getResponseEntity("Password Updated Successfully", HttpStatus.OK);
+				}
+				return cafeUtils.getResponseEntity("Incorrect Old Password", HttpStatus.BAD_REQUEST);
+				
+			}
+			return cafeUtils.getResponseEntity(cafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return cafeUtils.getResponseEntity(cafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
 		
 	}
 
