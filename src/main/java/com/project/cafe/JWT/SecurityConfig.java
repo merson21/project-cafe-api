@@ -49,7 +49,7 @@ public class SecurityConfig {
             .cors().disable()
             .csrf().disable()
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/user/login", "/user/signup", "/user/forgotPassword").permitAll()
+                .requestMatchers("/user/login", "/user/signup", "/user/forgotPassword", "/user/changePassword").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

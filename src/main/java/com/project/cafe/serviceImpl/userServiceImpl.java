@@ -23,11 +23,10 @@ import com.project.cafe.constents.cafeConstants;
 import com.project.cafe.dao.userDao;
 import com.project.cafe.service.userService;
 import com.project.cafe.utils.EmailUtils;
+import com.project.cafe.utils.OTPUtils;
 import com.project.cafe.utils.cafeUtils;
 import com.project.cafe.wrapper.UserWrapper;
 
-import ch.qos.logback.classic.Logger;
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -51,6 +50,9 @@ public class userServiceImpl implements userService {
 	
 	@Autowired
 	EmailUtils emailUtils;
+	
+	@Autowired
+	OTPUtils otpUtils;
 	
 	@Override
 	public ResponseEntity<String> signUp(Map<String, String> requestMap) {
@@ -174,17 +176,27 @@ public class userServiceImpl implements userService {
 	@Override
 	public ResponseEntity<String> changePassword(Map<String, String> requestMap) {
 		try {
-			user userObj = userDao.findByEmailId(jwtFilter.getCurrentUser());
-			if(!userObj.equals(null)) {
-				if(userObj.getPassword().equals(requestMap.get("oldPassword"))) {
-					userObj.setPassword(requestMap.get("newPassword"));
-					userDao.save(userObj);
-					return cafeUtils.getResponseEntity("Password Updated Successfully", HttpStatus.OK);
-				}
-				return cafeUtils.getResponseEntity("Incorrect Old Password", HttpStatus.BAD_REQUEST);
-				
+			user userObj = userDao.findByEmailId(requestMap.get("email"));
+			String oldPassword = requestMap.get("oldPassword");
+			String otpStr = requestMap.get("otp");
+			if(userObj != null) {		
+				if (otpStr != null && !otpStr.isEmpty()) {
+					if(otpUtils.validateOTP(userObj.getEmail(), Integer.parseInt(otpStr))) {
+						userObj.setPassword(requestMap.get("newPassword"));
+						userDao.save(userObj);
+						return cafeUtils.getResponseEntity("Password Updated Successfully", HttpStatus.OK);
+					}
+					return cafeUtils.getResponseEntity("Incorrect OTP", HttpStatus.BAD_REQUEST);
+				} else{
+					if(userObj.getPassword().equals(oldPassword)) {
+						userObj.setPassword(requestMap.get("newPassword"));
+						userDao.save(userObj);
+						return cafeUtils.getResponseEntity("Password Updated Successfully", HttpStatus.OK);
+					}
+					return cafeUtils.getResponseEntity("Incorrect Old Password", HttpStatus.BAD_REQUEST);
+				}				
 			}
-			return cafeUtils.getResponseEntity(cafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+			return cafeUtils.getResponseEntity("User Not Found", HttpStatus.BAD_REQUEST);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -199,8 +211,7 @@ public class userServiceImpl implements userService {
 		try {
 			user user = userDao.findByEmailId(requestMap.get("email"));
 			if(!Objects.isNull(user) && !Strings.isNullOrEmpty(user.getEmail())) {
-				emailUtils.forgotMail(user.getEmail(), "Credentials by Cafe Management System", user.getPassword());
-				log.info("Email Sent");
+				otpUtils.generateOTP(user.getEmail());
 			}
 			return cafeUtils.getResponseEntity("Please Check Your Email", HttpStatus.OK);
 		} catch (Exception e) {
@@ -209,5 +220,7 @@ public class userServiceImpl implements userService {
 		return cafeUtils.getResponseEntity(cafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
 		
 	}
+	
+	
 	
 }
