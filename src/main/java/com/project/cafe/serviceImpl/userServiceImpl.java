@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Strings;
@@ -54,6 +56,9 @@ public class userServiceImpl implements userService {
 	@Autowired
 	OTPUtils otpUtils;
 	
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+	
 	@Override
 	public ResponseEntity<String> signUp(Map<String, String> requestMap) {
 	    log.info("Inside signup {}", requestMap);
@@ -89,7 +94,8 @@ public class userServiceImpl implements userService {
 	    user.setName(requestMap.get("name"));
 	    user.setContactNumber(requestMap.get("contactNumber"));
 	    user.setEmail(requestMap.get("email"));
-	    user.setPassword(requestMap.get("password"));
+//	    user.setPassword(requestMap.get("password"));
+	    user.setPassword(passwordEncoder.encode(requestMap.get("password")));
 	    user.setStatus("false");
 	    user.setRole("user");
 	    return user;
@@ -97,25 +103,26 @@ public class userServiceImpl implements userService {
 
 
 	@Override
-	public ResponseEntity<String> login(Map<String, String> requestMap) {
-		
+	public ResponseEntity<String> login(Map<String, String> requestMap) {		
 		try {
 			Authentication auth = authenticationManager.authenticate(
-					new UsernamePasswordAuthenticationToken(requestMap.get("email"), requestMap.get("password")));
-				if (auth.isAuthenticated()) {
+					new UsernamePasswordAuthenticationToken(requestMap.get("email"), requestMap.get("password")));			
+				if (auth.isAuthenticated()) {					
 					if(customUserDetailsService.getUserDetail().getStatus().equalsIgnoreCase("true")) {
 						log.info("Login Successfully!");
-						return new ResponseEntity<String>("{\"token\":\"" + 
-								jwtUtil.generateToken(customUserDetailsService.getUserDetail().getEmail(), 
-									customUserDetailsService.getUserDetail().getRole()) + "\"}", 
-									HttpStatus.OK);
+						return new ResponseEntity<String>("{\"token\":\"" + jwtUtil.generateToken(customUserDetailsService.getUserDetail().getEmail(),customUserDetailsService.getUserDetail().getRole()) + "\"}", HttpStatus.OK);
 					}else {
 						return new ResponseEntity<String>("{\"message\":\"Wait for admin approval."+"\"}", HttpStatus.BAD_REQUEST);
-					}
-			}
+					}					
+				}
+		} catch (BadCredentialsException e) {
+//			e.printStackTrace();
+			return new ResponseEntity<>("{\"message\":\"Invalid email or password.\"}", HttpStatus.UNAUTHORIZED);
 		} catch (Exception e) {
 			e.printStackTrace();
+			return new ResponseEntity<>("{\"message\":\"An error occurred during login.\"}", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+		
 		return new ResponseEntity<String>("{\"message\":\"Bad Credentials."+"\"}", HttpStatus.BAD_REQUEST);
 	}
 
@@ -182,7 +189,7 @@ public class userServiceImpl implements userService {
 			if(userObj != null) {		
 				if (otpStr != null && !otpStr.isEmpty()) {
 					if(otpUtils.validateOTP(userObj.getEmail(), Integer.parseInt(otpStr))) {
-						userObj.setPassword(requestMap.get("newPassword"));
+						userObj.setPassword(passwordEncoder.encode(requestMap.get("newPassword")));
 						userDao.save(userObj);
 						return cafeUtils.getResponseEntity("Password Updated Successfully", HttpStatus.OK);
 					}

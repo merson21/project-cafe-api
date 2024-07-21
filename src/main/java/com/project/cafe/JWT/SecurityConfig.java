@@ -29,8 +29,8 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-    	return NoOpPasswordEncoder.getInstance();
-//        return new BCryptPasswordEncoder();    	
+//    	return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();    	
     }
 
     @Bean
@@ -39,8 +39,8 @@ public class SecurityConfig {
     }
     
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(customUserDetailsService);
-//                .passwordEncoder(passwordEncoder());
+        auth.userDetailsService(customUserDetailsService)
+                .passwordEncoder(passwordEncoder());
     }
     
     @Bean
