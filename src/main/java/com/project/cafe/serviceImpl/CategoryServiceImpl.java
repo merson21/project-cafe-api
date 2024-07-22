@@ -1,12 +1,16 @@
 package com.project.cafe.serviceImpl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.google.common.base.Strings;
 import com.project.cafe.JWT.JwtFilter;
 import com.project.cafe.POJO.Category;
 import com.project.cafe.constents.cafeConstants;
@@ -14,6 +18,10 @@ import com.project.cafe.dao.CategoryDao;
 import com.project.cafe.service.CategoryService;
 import com.project.cafe.utils.cafeUtils;
 
+import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class CategoryServiceImpl implements CategoryService{
 
@@ -58,6 +66,19 @@ public class CategoryServiceImpl implements CategoryService{
 		category.setName(requestMap.get("name"));
 		
 		return category;
+	}
+
+	@Override
+	public ResponseEntity<List<Category>> getAllCategory(String filterValue) {
+		try {
+			if(!Strings.isNullOrEmpty(filterValue) && filterValue.equalsIgnoreCase("true")) {
+				return new ResponseEntity<List<Category>>(categoryDao.getAllCategory(), HttpStatus.OK);
+			}
+			return new ResponseEntity<List<Category>>(categoryDao.findAll(), HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace(); 
+		}		
+		return new ResponseEntity<List<Category>>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 }
