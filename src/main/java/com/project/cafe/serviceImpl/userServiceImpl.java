@@ -184,7 +184,6 @@ public class userServiceImpl implements userService {
 	public ResponseEntity<String> changePassword(Map<String, String> requestMap) {
 		try {
 			user userObj = userDao.findByEmailId(requestMap.get("email"));
-			String oldPassword = requestMap.get("oldPassword");
 			String otpStr = requestMap.get("otp");
 			if(userObj != null) {		
 				if (otpStr != null && !otpStr.isEmpty()) {
@@ -195,8 +194,8 @@ public class userServiceImpl implements userService {
 					}
 					return cafeUtils.getResponseEntity("Incorrect OTP", HttpStatus.BAD_REQUEST);
 				} else{
-					if(userObj.getPassword().equals(oldPassword)) {
-						userObj.setPassword(requestMap.get("newPassword"));
+					if(passwordEncoder.matches(requestMap.get("oldPassword"), userObj.getPassword())) {
+						userObj.setPassword(passwordEncoder.encode(requestMap.get("newPassword")));
 						userDao.save(userObj);
 						return cafeUtils.getResponseEntity("Password Updated Successfully", HttpStatus.OK);
 					}
