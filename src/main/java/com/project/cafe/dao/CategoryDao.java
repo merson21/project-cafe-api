@@ -9,6 +9,6 @@ import com.project.cafe.POJO.Category;
 
 public interface CategoryDao extends JpaRepository<Category, Integer>{
 
-		@Query(value = "select * from category", nativeQuery = true)
+		@Query(value = "SELECT * FROM category WHERE id IN (SELECT category_fk FROM product where status = 'true')", nativeQuery = true)
 		List<Category> getAllCategory();
 }
