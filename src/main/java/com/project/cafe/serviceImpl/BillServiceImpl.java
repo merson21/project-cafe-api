@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.apache.pdfbox.io.IOUtils;
@@ -27,7 +28,6 @@ import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
-import com.itextpdf.text.pdf.codec.Base64.InputStream;
 import com.project.cafe.JWT.JwtFilter;
 import com.project.cafe.POJO.Bill;
 import com.project.cafe.constents.cafeConstants;
@@ -225,6 +225,21 @@ public class BillServiceImpl implements BillService {
 		byte[] byteArray = IOUtils.toByteArray(targetStream);
 		targetStream.close();
 		return byteArray;
+	}
+
+	@Override
+	public ResponseEntity<String> deleteBill(Integer id) {
+		try {
+			Optional optional = billDao.findById(id);
+			if (!optional.isEmpty()) {
+				billDao.deleteById(id);
+				return cafeUtils.getResponseEntity("Bill deleted successfully", HttpStatus.OK);
+			}
+			return cafeUtils.getResponseEntity("Bill id does not exist", HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return cafeUtils.getResponseEntity(cafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 }
