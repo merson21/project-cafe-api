@@ -1,5 +1,6 @@
 package com.project.cafe.utils;
 
+import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,4 +43,15 @@ public class cafeUtils {
     		}.getType());
     	return new HashMap<>();
     }
+    
+    public static Boolean isFileExist(String path) {
+    	try {
+			File file = new File(path);
+			return (file != null && file.exists()) ? Boolean.TRUE : Boolean.FALSE;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    	return false;
+    }
+    
 }

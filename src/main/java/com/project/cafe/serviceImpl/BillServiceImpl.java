@@ -1,10 +1,14 @@
 package com.project.cafe.serviceImpl;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.apache.pdfbox.io.IOUtils;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +27,7 @@ import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.codec.Base64.InputStream;
 import com.project.cafe.JWT.JwtFilter;
 import com.project.cafe.POJO.Bill;
 import com.project.cafe.constents.cafeConstants;
@@ -178,6 +183,48 @@ public class BillServiceImpl implements BillService {
 		return requestMap.containsKey("name") && requestMap.containsKey("contactNumber")
 				&& requestMap.containsKey("email") && requestMap.containsKey("paymentMethod")
 				&& requestMap.containsKey("productDetails") && requestMap.containsKey("totalAmount");
+	}
+
+	@Override
+	public ResponseEntity<List<Bill>> getBills() {
+		List<Bill> list = new ArrayList<>();
+		if (jwtFilter.isAdmin()) {
+			list = billDao.getAllBills();
+		} else {
+			list = billDao.getBillByUserName(jwtFilter.getCurrentUser());
+		}
+		return new ResponseEntity<>(list,HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<byte[]> getPdf(Map<String, Object> requestMap) {
+		try {
+			byte[] byteArray = new byte[0];
+			if (!requestMap.containsKey("uuid") && validateRequestMap(requestMap)) {
+				return new ResponseEntity<>(byteArray, HttpStatus.BAD_REQUEST);
+			}
+			String filePath = cafeConstants.STORE_LOCATION + "\\" + (String) requestMap.get("uuid") + ".pdf";
+			if (cafeUtils.isFileExist(filePath)) {
+				byteArray = getByteArray(filePath);
+				return new ResponseEntity<>(byteArray, HttpStatus.OK);
+			}else {
+				requestMap.put("isGenerate", false);
+				generateReport(requestMap);
+				byteArray = getByteArray(filePath);
+				return new ResponseEntity<>(byteArray, HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			e.printStackTrace(); 
+		}
+		return null;
+	}
+
+	private byte[] getByteArray(String filePath) throws Exception {
+		File initialFile = new File(filePath);
+		FileInputStream targetStream = new FileInputStream(initialFile);
+		byte[] byteArray = IOUtils.toByteArray(targetStream);
+		targetStream.close();
+		return byteArray;
 	}
 
 }
