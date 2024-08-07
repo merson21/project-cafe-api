@@ -19,7 +19,7 @@ public class EmailUtils {
 	@Autowired
 	private JavaMailSender emailSender;
 	
-	@Value("${application.url:localhost:8080}")
+	@Value("${app.host:localhost:8080}")
 	private String URL;
 
 	public void sendSimpleMessage(String to, String subject, String text, List<String> list) {

@@ -1,5 +1,12 @@
-application:
-  url : localhost:4200
+app:
+  host : localhost:8080
+  origin: http://localhost:4200,http://localhost:4201
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
 
 spring:
   datasource:
@@ -23,8 +30,12 @@ spring:
           auth: true
           starttls:
             enable: true	
-
+ 
 server:
   port: 8080
-  
+logging:
+  level:
+    root: INFO
+    com.project.cafe: DEBUG
+   
  
